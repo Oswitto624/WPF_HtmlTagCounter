@@ -4,10 +4,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WPF_HtmlTagCounter"
         mc:Ignorable="d"
         Title="HtmlTagCounter" Height="450" Width="800"
         xmlns:vm="clr-namespace:WPF_HtmlTagCounter.ViewModels">
+
+    <Window.DataContext>
+        <vm:MainViewModel x:Name="mainViewModel"/>
+    </Window.DataContext>
+    
     <Grid ShowGridLines="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -15,17 +19,21 @@
         </Grid.RowDefinitions>
 
         <!--Информация о подсчёте--> 
-        <ListBox>
+        <ListBox 
+            Grid.Row="0"
+            ItemsSource="{Binding Urls}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid ShowGridLines="True">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
+                            <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="Ссылка"/>
+                        <TextBlock Grid.Column="0" Text="{Binding Url}"/>
                         <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt;:"/>
+                        <TextBlock Grid.Column="2" Text="{Binding TagCount}"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -42,7 +50,8 @@
             <Button Name="btnOpenFile"
                     Grid.Column="0"
                     Margin="5px"
-                    Content="Загрузить файл"/>
+                    Content="Загрузить файл"
+                    Command="{Binding LoadFileCommand}"/>
             
             <Button Name="btnStartCalc"
                     Grid.Column="1"
