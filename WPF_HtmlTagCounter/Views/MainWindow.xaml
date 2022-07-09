@@ -1,12 +1,58 @@
-﻿<Window x:Class="WPF_HtmlTagCounter.MainWindow"
+﻿<Window 
+        x:Class="WPF_HtmlTagCounter.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPF_HtmlTagCounter"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="HtmlTagCounter" Height="450" Width="800"
+        xmlns:vm="clr-namespace:WPF_HtmlTagCounter.ViewModels">
+    <Grid ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="0.1*"/>
+        </Grid.RowDefinitions>
 
+        <!--Информация о подсчёте--> 
+        <ListBox>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid ShowGridLines="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Ссылка"/>
+                        <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt;:"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <!--Кнопки-->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Button Name="btnOpenFile"
+                    Grid.Column="0"
+                    Margin="5px"
+                    Content="Загрузить файл"/>
+            
+            <Button Name="btnStartCalc"
+                    Grid.Column="1"
+                    Margin="5px"
+                    Content="Начать подсчёт тегов"/>
+            
+            <Button Name="btnStopCalc"
+                    Grid.Column="2"
+                    Margin="5px"
+                    Content="Остановить подсчёт"/>
+        </Grid>
     </Grid>
 </Window>
