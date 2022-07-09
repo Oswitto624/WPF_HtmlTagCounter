@@ -27,7 +27,7 @@ namespace WPF_HtmlTagCounter.ViewModels
             {
                 return loadFileCommand ??
                     (loadFileCommand = new DelegateCommand(
-                        obj => LoadFromFile(),
+                        async obj => await LoadFromFileAsync(),
                         flag => !inProgressFlag
                     ));
             }
@@ -40,13 +40,13 @@ namespace WPF_HtmlTagCounter.ViewModels
             Urls = new ObservableCollection<UrlViewModel>();
         }
 
-        private void LoadFromFile()
+        private async Task LoadFromFileAsync()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "txt files (*.txt)|*.txt";
             if(openFileDialog.ShowDialog() == true)
             {
-                var fileLines = File.ReadAllLines(openFileDialog.FileName);
+                var fileLines = await File.ReadAllLinesAsync(openFileDialog.FileName);
                 Urls.Clear();
                 foreach (var url in fileLines)
                 {
