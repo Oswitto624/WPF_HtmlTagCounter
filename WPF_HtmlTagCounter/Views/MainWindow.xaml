@@ -21,19 +21,22 @@
         <!--Информация о подсчёте--> 
         <ListBox 
             Grid.Row="0"
+            HorizontalContentAlignment="Stretch"
             ItemsSource="{Binding Urls}">
+            
+
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ShowGridLines="True">
+                    <Grid ShowGridLines="True" HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="200px"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" Text="{Binding Url}"/>
-                        <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt;:"/>
-                        <TextBlock Grid.Column="2" Text="{Binding TagCount}"/>
+                        <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt; :"/>
+                        <TextBlock Grid.Column="2" Text="{Binding TagCount}" HorizontalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
@@ -56,7 +59,8 @@
             <Button Name="btnStartCalc"
                     Grid.Column="1"
                     Margin="5px"
-                    Content="Начать подсчёт тегов"/>
+                    Content="Начать подсчёт тегов"
+                    Command="{Binding StartCalcCommand}"/>
             
             <Button Name="btnStopCalc"
                     Grid.Column="2"

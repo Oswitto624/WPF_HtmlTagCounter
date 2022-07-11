@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WPF_HtmlTagCounter.Models;
 
 namespace WPF_HtmlTagCounter.ViewModels
 {
@@ -33,6 +34,18 @@ namespace WPF_HtmlTagCounter.ViewModels
             }
         }
 
+        public ICommand StartCalcCommand
+        {
+            get
+            {
+                return startCalcCommand ??
+                    (startCalcCommand = new DelegateCommand(
+                        async obj => await StartCalcAsync(),
+                        flag => !inProgressFlag
+                    ));
+            }
+        }
+
         public ObservableCollection<UrlViewModel> Urls { get; set; }
 
         public MainViewModel()
@@ -52,7 +65,15 @@ namespace WPF_HtmlTagCounter.ViewModels
                 {
                     Urls.Add(new UrlViewModel(url));
                 }
+            }
+        }
 
+        private async Task StartCalcAsync()
+        {
+
+            foreach (var item in Urls)
+            {
+                item.TagCount = await CounterLogic.StartCounterAsync(item.Url);
             }
         }
     }
