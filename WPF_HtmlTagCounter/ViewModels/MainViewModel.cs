@@ -40,7 +40,7 @@ namespace WPF_HtmlTagCounter.ViewModels
             {
                 return startCalcCommand ??
                     (startCalcCommand = new DelegateCommand(
-                        async obj => await StartCalcAsync(),
+                        async obj => StartCalc(),
                         flag => !inProgressFlag
                     ));
             }
@@ -68,13 +68,23 @@ namespace WPF_HtmlTagCounter.ViewModels
             }
         }
 
-        private async Task StartCalcAsync()
+        private void StartCalc()
         {
-
-            foreach (var item in Urls)
+            var taskFactory = Task.Factory.StartNew(async () => 
             {
-                item.TagCount = await CounterLogic.StartCounterAsync(item.Url);
-            }
+                
+                foreach (var item in Urls)
+                {
+                    var task = Task.Factory.StartNew(async () =>
+                    {
+                        item.TagCount = await CounterLogic.StartCounterAsync(item.Url);
+                    });
+                }
+
+                await Task.WhenAll();
+            });
+
+            taskFactory.Wait();
         }
     }
 }
