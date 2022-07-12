@@ -65,7 +65,8 @@
             <Button Name="btnStopCalc"
                     Grid.Column="2"
                     Margin="5px"
-                    Content="Остановить подсчёт"/>
+                    Content="Остановить подсчёт"
+                    Command="{Binding StopCalcCommand}"/>
         </Grid>
     </Grid>
 </Window>

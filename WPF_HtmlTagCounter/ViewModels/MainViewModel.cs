@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WPF_HtmlTagCounter.Models;
@@ -17,7 +18,9 @@ namespace WPF_HtmlTagCounter.ViewModels
         public event PropertyChangedEventHandler PropertyChanged;
 
         private bool inProgressFlag;
-        
+
+        private CancellationTokenSource cancelToken;
+
         private ICommand loadFileCommand;
         private ICommand startCalcCommand;
         private ICommand stopCalcCommand;
@@ -40,8 +43,20 @@ namespace WPF_HtmlTagCounter.ViewModels
             {
                 return startCalcCommand ??
                     (startCalcCommand = new DelegateCommand(
-                        async obj => StartCalc(),
-                        flag => !inProgressFlag
+                        obj => StartCalc(),
+                        flag => !inProgressFlag && Urls.Count != 0
+                    ));
+            }
+        }
+
+        public ICommand StopCalcCommand
+        {
+            get
+            {
+                return stopCalcCommand ??
+                    (stopCalcCommand = new DelegateCommand(
+                        obj => StopProcess(),
+                        flag => inProgressFlag
                     ));
             }
         }
@@ -55,6 +70,9 @@ namespace WPF_HtmlTagCounter.ViewModels
 
         private async Task LoadFromFileAsync()
         {
+            //inProgressFlag = true;
+            cancelToken = new CancellationTokenSource();
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "txt files (*.txt)|*.txt";
             if(openFileDialog.ShowDialog() == true)
@@ -66,25 +84,38 @@ namespace WPF_HtmlTagCounter.ViewModels
                     Urls.Add(new UrlViewModel(url));
                 }
             }
+
+            //inProgressFlag = false;
         }
 
         private void StartCalc()
         {
             var taskFactory = Task.Factory.StartNew(async () => 
             {
+                inProgressFlag = true;
                 
                 foreach (var item in Urls)
                 {
                     var task = Task.Factory.StartNew(async () =>
                     {
-                        item.TagCount = await CounterLogic.StartCounterAsync(item.Url);
-                    });
+                        item.TagCount = await CounterLogic.StartCounterAsync(item.Url, cancelToken.Token);
+                    }, cancelToken.Token);
                 }
-
                 await Task.WhenAll();
-            });
+                
+            }, cancelToken.Token);
 
-            taskFactory.Wait();
+            if (taskFactory.IsCanceled)
+                taskFactory.Dispose();
+            
+            inProgressFlag = false;   
+        }
+
+        private void StopProcess()
+        {
+            cancelToken.Cancel();
+            inProgressFlag = false;
+
         }
     }
 }

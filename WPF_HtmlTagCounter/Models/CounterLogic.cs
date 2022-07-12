@@ -4,14 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WPF_HtmlTagCounter.Models
 {
     public class CounterLogic
     {
-        private static async Task<Stream> GetSiteContentToStream(string url)
+        private static async Task<Stream> GetSiteContentToStream(string url, CancellationToken Cancel)
         {
+            Cancel.ThrowIfCancellationRequested();
+
             WebClient client = new WebClient();
             var content = await client.DownloadStringTaskAsync(url);
 
@@ -26,14 +29,17 @@ namespace WPF_HtmlTagCounter.Models
             return stream;
         }
 
-        private static int TagCounterAsync(Stream SiteStream)
+        private static Task<int> TagCounterAsync(Stream SiteStream, CancellationToken Cancel)
         {
             var tagCount = 0;
-            var expectedTag = "a ";
+            var expectedTag = "a";
             var intoTag = false;
 
             using (var reader = new StreamReader(SiteStream))
             {
+                Cancel.ThrowIfCancellationRequested();
+
+                var readerPosition = 0;
                 var stringBuilder = new StringBuilder();
 
                 while (!reader.EndOfStream)
@@ -50,22 +56,24 @@ namespace WPF_HtmlTagCounter.Models
                         
                         if (currentString == ">")
                         {
-                            stringBuilder.Append(currentString);
+                            var tempString = stringBuilder.ToString();
 
-                            if (stringBuilder.ToString().StartsWith($"<{expectedTag}"))
+                            if (tempString.StartsWith($"<{expectedTag}") || tempString.EndsWith($"/{expectedTag}>"))
                                 tagCount++;
 
                             stringBuilder.Clear();
                         }
                     }              
+                    readerPosition++;
                 }
             }
-            return tagCount;
+            
+            return Task.FromResult(tagCount);
         }
         
-        public static async Task<int> StartCounterAsync(string url)
-        {            
-            return TagCounterAsync(await GetSiteContentToStream(url));
+        public static async Task<int> StartCounterAsync(string url, CancellationToken Cancel)
+        {
+            return await TagCounterAsync(await GetSiteContentToStream(url, Cancel), Cancel);
         }
     }
 }
