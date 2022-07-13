@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,8 @@ namespace WPF_HtmlTagCounter.ViewModels
         private ICommand startCalcCommand;
         private ICommand stopCalcCommand;
 
-        private int maxCount = 0;
+        private int maxCount;
+        private int totalCount;
 
         public ICommand LoadFileCommand
         {
@@ -63,6 +65,21 @@ namespace WPF_HtmlTagCounter.ViewModels
             }
         }
 
+        public int TotalProgress
+        {
+            get { return totalCount; }
+            set
+            {
+                totalCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public ObservableCollection<UrlViewModel> Urls { get; set; }
 
         public MainViewModel()
@@ -72,8 +89,6 @@ namespace WPF_HtmlTagCounter.ViewModels
 
         private async Task LoadFromFileAsync()
         {
-            cancelToken = new CancellationTokenSource();
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "txt files (*.txt)|*.txt";
             if(openFileDialog.ShowDialog() == true)
@@ -89,27 +104,33 @@ namespace WPF_HtmlTagCounter.ViewModels
 
         private void StartCalc()
         {
-            var taskFactory = Task.Factory.StartNew(async () => 
-            {
-                inProgressFlag = true;
+            maxCount = 0;
+            inProgressFlag = true;
+            cancelToken = new CancellationTokenSource();
+            var progress = new Progress<int>();
 
+            var taskFactory = Task.Factory.StartNew(() => 
+            {
                 foreach (var item in Urls)
                 {
-                    var task = Task.Factory.StartNew(async () =>
+                    var task = Task.Factory.StartNew(() =>
                     {
-                        item.TagCount = await CounterLogic.StartCounterAsync(item.Url, cancelToken.Token);
+                        item.TagCount = CounterLogic.StartCounterAsync(item.Url, progress, cancelToken.Token).Result;
                         CheckMaxCount(item);
-                    }, cancelToken.Token);
 
+                        progress.ProgressChanged += (sender, e) =>
+                        {
+                            item.ReadingProgress = e;
+                            CalcTotalProgress();
+                        };
+
+                    }, cancelToken.Token);
                 }
-                await Task.WhenAll();
+                Task.WhenAll();
                 
             }, cancelToken.Token);
 
-            if (taskFactory.IsCanceled)
-                taskFactory.Dispose();
-            
-            inProgressFlag = false;   
+            taskFactory.Wait();
         }
 
         private void StopProcess()
@@ -130,6 +151,13 @@ namespace WPF_HtmlTagCounter.ViewModels
                 maxCount = item.TagCount;
                 item.HasMaxCount = true;
             }
+        }
+
+        private void CalcTotalProgress()
+        {
+            if (Urls.Count == 1)
+                TotalProgress = 100;
+            TotalProgress = Urls.Sum(t => t.ReadingProgress) / Urls.Count;
         }
     }
 }

@@ -11,41 +11,46 @@ namespace WPF_HtmlTagCounter.Models
 {
     public class CounterLogic
     {
-        private static async Task<Stream> GetSiteContentToStream(string url, CancellationToken Cancel)
+        private static Stream GetSiteContentToStream(string url, CancellationToken Cancel)
         {
-            Cancel.ThrowIfCancellationRequested();
+            //Cancel.ThrowIfCancellationRequested();
 
             WebClient client = new WebClient();
-            var content = await client.DownloadStringTaskAsync(url);
+            var content =  client.DownloadString(url);
 
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream, Encoding.Default);
             
-            await writer.WriteAsync(content);
-            await writer.FlushAsync();
+             writer.WriteAsync(content);
+             writer.FlushAsync();
 
             stream.Position = 0;
 
             return stream;
         }
 
-        private static Task<int> TagCounterAsync(Stream SiteStream, CancellationToken Cancel)
+        private static Task<int> TagCounterAsync(Stream SiteStream, IProgress<int> Progress, CancellationToken Cancel)
         {
             var tagCount = 0;
             var expectedTag = "a";
             var intoTag = false;
 
+            if (Cancel.IsCancellationRequested)
+                return Task.FromCanceled<int>(Cancel);
+
             using (var reader = new StreamReader(SiteStream))
             {
-                Cancel.ThrowIfCancellationRequested();
-
-                var readerPosition = 0;
+                var readerPosition = 1;
                 var stringBuilder = new StringBuilder();
-
+                var streamLength = SiteStream.Length;
+                
                 while (!reader.EndOfStream)
                 {
                     var currentByte = reader.Read();
                     var currentString = char.ConvertFromUtf32(currentByte);
+
+                    if (readerPosition % 99 == 0) //отладочная задержка
+                        Thread.Sleep(1);
 
                     if (currentString == "<" && !intoTag)
                         intoTag = true;
@@ -53,7 +58,6 @@ namespace WPF_HtmlTagCounter.Models
                     if (intoTag)
                     {
                         stringBuilder.Append(currentString);
-                        
                         if (currentString == ">")
                         {
                             var tempString = stringBuilder.ToString();
@@ -63,17 +67,20 @@ namespace WPF_HtmlTagCounter.Models
 
                             stringBuilder.Clear();
                         }
-                    }              
+                    }
+                    var progress = (int)Math.Round((double)readerPosition * 100 / streamLength);
                     readerPosition++;
                 }
             }
-            
+            Progress.Report(100);
             return Task.FromResult(tagCount);
         }
         
-        public static async Task<int> StartCounterAsync(string url, CancellationToken Cancel)
+        public static Task<int> StartCounterAsync(string Url, IProgress<int> Progress, CancellationToken Cancel)
         {
-            return await TagCounterAsync(await GetSiteContentToStream(url, Cancel), Cancel);
+            var tagCount = TagCounterAsync(GetSiteContentToStream(Url, Cancel), Progress, Cancel);
+            return tagCount;
+            //return await TagCounterAsync(await GetSiteContentToStream(Url, Cancel), Progress, Cancel);
         }
     }
 }

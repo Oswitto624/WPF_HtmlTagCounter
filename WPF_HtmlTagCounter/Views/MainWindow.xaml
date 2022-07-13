@@ -16,6 +16,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="0.1*"/>
+            <RowDefinition Height="0.1*"/>
         </Grid.RowDefinitions>
 
         <!--Информация о подсчёте--> 
@@ -35,7 +36,6 @@
                             <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-
                         
                         <TextBlock Grid.Column="0" Text="{Binding Url}" />
                         <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt; :"/>
@@ -47,8 +47,11 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
+        <!--Шкала прогресса-->
+        <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding TotalProgress}" Foreground="LightSkyBlue" Margin="5px"/>
+
         <!--Кнопки-->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>

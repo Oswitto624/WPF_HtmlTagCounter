@@ -13,6 +13,7 @@ namespace WPF_HtmlTagCounter.ViewModels
         private string url;
         private int tagCount;
         private bool hasMaxCount;
+        private int readingProgress;
 
         public UrlViewModel(string Url)
         {
@@ -49,6 +50,19 @@ namespace WPF_HtmlTagCounter.ViewModels
             set
             {
                 hasMaxCount = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int ReadingProgress
+        {
+            get { return readingProgress; }
+            set
+            {
+                readingProgress = value;
+                //if (readingProgress < 0) readingProgress = 0;
+                //if (readingProgress > 100) readingProgress = 100;
+
                 OnPropertyChanged();
             }
         }
