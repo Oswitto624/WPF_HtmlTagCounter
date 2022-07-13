@@ -22,21 +22,26 @@
         <ListBox 
             Grid.Row="0"
             HorizontalContentAlignment="Stretch"
-            ItemsSource="{Binding Urls}">
+            ItemsSource="{Binding Urls}" d:ItemsSource="{d:SampleData ItemCount=5}">
             
 
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ShowGridLines="True" HorizontalAlignment="Stretch">
+                    <Grid ShowGridLines="False" HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="auto" MinWidth="200px"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Url}"/>
+                        
+                        <TextBlock Grid.Column="0" Text="{Binding Url}" />
                         <TextBlock Grid.Column="1" Text="Тегов &lt;a&gt; :"/>
                         <TextBlock Grid.Column="2" Text="{Binding TagCount}" HorizontalAlignment="Center"/>
+                        <TextBlock Grid.Column="3" Text="Максимальное значение?"/>
+                        <CheckBox Grid.Column="4" IsChecked="{Binding HasMaxCount}" Margin="5,0px" IsEnabled="False"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

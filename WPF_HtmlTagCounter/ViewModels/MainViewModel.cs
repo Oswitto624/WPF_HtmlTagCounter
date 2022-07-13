@@ -25,6 +25,8 @@ namespace WPF_HtmlTagCounter.ViewModels
         private ICommand startCalcCommand;
         private ICommand stopCalcCommand;
 
+        private int maxCount = 0;
+
         public ICommand LoadFileCommand
         {
             get
@@ -90,13 +92,15 @@ namespace WPF_HtmlTagCounter.ViewModels
             var taskFactory = Task.Factory.StartNew(async () => 
             {
                 inProgressFlag = true;
-                
+
                 foreach (var item in Urls)
                 {
                     var task = Task.Factory.StartNew(async () =>
                     {
                         item.TagCount = await CounterLogic.StartCounterAsync(item.Url, cancelToken.Token);
+                        CheckMaxCount(item);
                     }, cancelToken.Token);
+
                 }
                 await Task.WhenAll();
                 
@@ -112,6 +116,20 @@ namespace WPF_HtmlTagCounter.ViewModels
         {
             cancelToken.Cancel();
             inProgressFlag = false;
+        }
+
+        private void CheckMaxCount(UrlViewModel item)
+        {
+            if (item.TagCount >= maxCount)
+            {
+                foreach (var resultItem in Urls)
+                {
+                    resultItem.HasMaxCount = false;
+                }
+
+                maxCount = item.TagCount;
+                item.HasMaxCount = true;
+            }
         }
     }
 }
